@@ -1,0 +1,55 @@
+####récupération version #####
+uname -a | awk -F" " '{print $2}' #nom + version
+cat /etc/debian_version #version
+uname -a | awk -F" " '{print $3}' #version de kernel
+uname -a | awk -F" " '{print $9}' #architecture
+dpkg-query -f '${binary:Package},${Version}\n' -W #recupération packages + version
+#### dns#####
+cat /etc/resolv.conf #récupération dns  server
+hostname #nom de serveur
+hostname -f #nom de serveur avec dns
+
+###usage cpu et memoire ######
+top -b -n 3 | grep Cpu #usage cpu 
+top -b -n 3 | grep Mem #usage Mem
+
+###usage disque####
+df -h
+
+
+##### réseaux ######
+cat dev | awk '{ print $1 }'  | grep -v Inter | grep -v face
+ip link | awk '{ print $2 }' | grep -F "en" #lister les interfaces
+ip -4 addr | grep $interfaces | grep inet | awk '{print $2}' récupérer ip d'une interfaces
+
+####script monitoring interface réseaux ####################
+
+#!/usr/bin/env bash
+
+inter=$1
+nbprise=$2
+cp=0
+while [ $cp != $nbprise ]
+do
+let Vreceptdep=`grep $inter /proc/net/dev|awk '{ print $2 }'`
+let Vtransidep=`grep $inter /proc/net/dev|awk '{ print $10 }'`
+
+sleep 1
+let "cp = cp + 1"
+let Vreceptdep2=`grep $inter /proc/net/dev|awk '{ print $2 }'`
+let Vtransidep2=`grep $inter /proc/net/dev|awk '{ print $10 }'`
+
+let "result = Vreceptdep2 - Vreceptdep"
+let "result_trans = Vtransidep2 - Vtransidep"
+
+let "result = $result /1024 /1024"
+let "result_trans = $result_trans /1024 /1024"
+echo reception $result MB
+echo emission $result_trans MB
+done
+
+ 
+
+
+
+
