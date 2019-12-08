@@ -103,7 +103,7 @@ fct_packages() {
 fct_cpu_usage () {
 
     echo '"check_cpu_usage": {' >>$file_name
-
+     let "mes = 0"
     top -b -n 3 | grep Cpu > $_LOG_DIR/Cpu_tmp
     cat $_LOG_DIR/Cpu_tmp | while read -r line; do
         cpu_usage_user=$(echo $line | awk '{ print $2 }'| awk -F "," '{ print $1 }')
@@ -116,11 +116,12 @@ fct_cpu_usage () {
         cpu_usage_tsth=$(echo $line | awk '{ print $16 }'| awk -F "," '{ print $1 }')
 
         if [ $cpu_usage_idle -lt 20 ]; then
-            echo ' "Cpu": { "cpu_usage_user": "'$cpu_usage_user'", "cpu_usage_system": "'$cpu_usage_system'", "cpu_usage_nice": "'$cpu_usage_nice'", "cpu_usage_idle": "'$cpu_usage_idle'", "cpu_usage_wait": "'$cpu_usage_wait'", "cpu_usage_tshi": "'$cpu_usage_tshi'", "cpu_usage_tssi": "'$cpu_usage_tssi'", "cpu_usage_tsth": "'$cpu_usage_tsth'", "message": "ALERT"  },' >>$file_name
+            echo ' "Cpu_mes'$mes'": { "cpu_usage_user": "'$cpu_usage_user'", "cpu_usage_system": "'$cpu_usage_system'", "cpu_usage_nice": "'$cpu_usage_nice'", "cpu_usage_idle": "'$cpu_usage_idle'", "cpu_usage_wait": "'$cpu_usage_wait'", "cpu_usage_tshi": "'$cpu_usage_tshi'", "cpu_usage_tssi": "'$cpu_usage_tssi'", "cpu_usage_tsth": "'$cpu_usage_tsth'", "message": "ALERT"  },' >>$file_name
         else
 
-        echo ' "Cpu": { "cpu_usage_user": "'$cpu_usage_user'", "cpu_usage_system": "'$cpu_usage_system'", "cpu_usage_nice": "'$cpu_usage_nice'", "cpu_usage_idle": "'$cpu_usage_idle'", "cpu_usage_wait": "'$cpu_usage_wait'", "cpu_usage_tshi": "'$cpu_usage_tshi'", "cpu_usage_tssi": "'$cpu_usage_tssi'", "cpu_usage_tsth": "'$cpu_usage_tsth'", "message": "INFO"  },' >>$file_name
+        echo ' "Cpu_mes'$mes'": { "cpu_usage_user": "'$cpu_usage_user'", "cpu_usage_system": "'$cpu_usage_system'", "cpu_usage_nice": "'$cpu_usage_nice'", "cpu_usage_idle": "'$cpu_usage_idle'", "cpu_usage_wait": "'$cpu_usage_wait'", "cpu_usage_tshi": "'$cpu_usage_tshi'", "cpu_usage_tssi": "'$cpu_usage_tssi'", "cpu_usage_tsth": "'$cpu_usage_tsth'", "message": "INFO"  },' >>$file_name
       fi
+      let "mes = mes + 1"
     done
     echo "}," >>$file_name
 }
