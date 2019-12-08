@@ -12,3 +12,9 @@ on a un tableau de conversion conservée par le client pour qu'il puisse faire l
 
 Ensuite on renseigne la BDD
 
+
+#1 Référentiel : 
+Afin d'avoir des éléments de comparaison, il est nécessaire d'avoir un référentiel à jour
+On crée une référence dans la BDD et on l'alimente automatiquement via des scripts spécifiques
+Pour vérifier les mises à jour, on lance des scripts à chaque lancement de l'application en front
+
