@@ -124,6 +124,28 @@ fct_cpu_usage () {
     done
     echo "}," >>$file_name
 }
+fct_mem_usage () {
+
+    echo '"check_mem_usage": {' >>$file_name
+
+  free -m | grep Mem > $_LOG_DIR/mem_tmp
+    cat $_LOG_DIR/mem_tmp | while read -r line; do
+        mem_usage_total=$(echo $line | awk '{ print $2 }')
+        mem_usage_use=$(echo $line | awk '{ print $3 }')
+        mem_usage_free=$(echo $line | awk '{ print $4 }')
+        mem_usage_buffer=$(echo $line | awk '{ print $6 }')
+        mem_usage_available=$(echo $line | awk '{ print $7 }')
+        let "pclibre = $mem_usage_available*100"
+        let "pclibre = $pclibre /$mem_usage_total"
+        if [ $pclibre -lt 20 ]; then
+            echo ' "mem_ram": { "mem_usage_total": "'$mem_usage_total'", "mem_usage_use": "'$mem_usage_use'", "mem_usage_free": "'$mem_usage_free'", "mem_usage_buffer": "'$mem_usage_buffer'", "mem_usage_available": "'$mem_usage_available'", "pct libre": "'$pclibre'",  "message": "ALERT"  },' >>$file_name
+        else
+          echo ' "mem_ram": { "mem_usage_total": "'$mem_usage_total'", "mem_usage_use": "'$mem_usage_use'", "mem_usage_free": "'$mem_usage_free'", "mem_usage_buffer": "'$mem_usage_buffer'", "mem_usage_available": "'$mem_usage_available'", "pct libre": "'$pclibre'",  "message": "INFO"  },' >>$file_name
+      fi
+    done
+    echo "}," >>$file_name
+}
+
 
 fct_commons() {
     machine_name_fqdn=$(hostname -f | head -n 1)
@@ -153,6 +175,7 @@ fct_server
 fct_network
 fct_cpu_usage
 fct_packages
+fct_mem_usage
 echo ' "machine_name_fqdn": "'$machine_name_fqdn'", ' >>$file_name
 echo ' "distributor": "'$distributor'", ' >>$file_name
 echo ' "kernel_version": "'$kernel_version'", ' >>$file_name
