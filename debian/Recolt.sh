@@ -145,7 +145,25 @@ fct_mem_usage () {
     done
     echo "}," >>$file_name
 }
+fct_swp_usage () {
 
+    echo '"check_swp_usage": {' >>$file_name
+
+  free -m | grep Swap > $_LOG_DIR/mem_tmp
+    cat $_LOG_DIR/mem_tmp | while read -r line; do
+        swp_usage_total=$(echo $line | awk '{ print $2 }')
+        swp_usage_use=$(echo $line | awk '{ print $3 }')
+        swp_usage_free=$(echo $line | awk '{ print $4 }')
+        let "pclibre = $swp_usage_free*100"
+        let "pclibre = $pclibre /$swp_usage_total"
+        if [ $pclibre -lt 20 ]; then
+            echo ' "swp_ram": { "swp_usage_total": "'$swp_usage_total'", "swp_usage_use": "'$swp_usage_use'", "swp_usage_free": "'$swp_usage_free'", "pct libre": "'$pclibre'",  "message": "ALERT"  },' >>$file_name
+        else
+          echo ' "swp_ram": { "swp_usage_total": "'$swp_usage_total'", "swp_usage_use": "'$swp_usage_use'", "swp_usage_free": "'$swp_usage_free'", "pct libre": "'$pclibre'",  "message": "INFO"  },' >>$file_name
+      fi
+    done
+    echo "}," >>$file_name
+}
 
 fct_commons() {
     machine_name_fqdn=$(hostname -f | head -n 1)
@@ -176,6 +194,7 @@ fct_network
 fct_cpu_usage
 fct_packages
 fct_mem_usage
+fct_swp_usage
 echo ' "machine_name_fqdn": "'$machine_name_fqdn'", ' >>$file_name
 echo ' "distributor": "'$distributor'", ' >>$file_name
 echo ' "kernel_version": "'$kernel_version'", ' >>$file_name
