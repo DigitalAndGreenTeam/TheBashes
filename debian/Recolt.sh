@@ -74,11 +74,14 @@ fct_network() {
 
 
 
-    inter=$(cat /proc/net/dev | awk '{ print $1 }'  | grep -v Inter | grep -v face)
+    inter=$(cat /proc/net/dev | awk '{ print $1 }'  | grep -v Inter | grep -v face | grep -v lo )
     echo "${inter//:/}" | while read line; do
         nom_inter=$(echo $line)
+        debit=$(ip -4 addr | grep $line | grep -v inet | awk '{ print $13}')
         ip_addr=$(ip -4 addr | grep $line | grep inet | awk '{print $2}')
-        echo ' "'$nom_inter'": { "ip": "'$ip_addr'" },' >>$file_name
+        echo "${ip_addr}" | while read addr; do
+        echo ' "'$nom_inter'": { "ip": "'$addr'", "debit": "'$debit'" },' >>$file_name
+      done
     done
     echo "}," >>$file_name
 }
@@ -97,11 +100,36 @@ fct_packages() {
     done
     echo "}," >>$file_name
 }
+fct_cpu_usage () {
+
+    echo '"check_cpu_usage": {' >>$file_name
+
+    top -b -n 3 | grep Cpu > $_LOG_DIR/Cpu_tmp
+    cat $_LOG_DIR/Cpu_tmp | while read -r line; do
+        cpu_usage_user=$(echo $line | awk '{ print $2 }'| awk -F "," '{ print $1 }')
+        cpu_usage_system=$(echo $line | awk '{ print $4 }'| awk -F "," '{ print $1 }')
+        cpu_usage_nice=$(echo $line | awk '{ print $6 }'| awk -F "," '{ print $1 }')
+        cpu_usage_idle=$(echo $line | awk '{ print $8 }'| awk -F "," '{ print $1 }')
+        cpu_usage_wait=$(echo $line | awk '{ print $10 }'| awk -F "," '{ print $1 }')
+        cpu_usage_tshi=$(echo $line | awk '{ print $12 }'| awk -F "," '{ print $1 }')
+        cpu_usage_tssi=$(echo $line | awk '{ print $14 }'| awk -F "," '{ print $1 }')
+        cpu_usage_tsth=$(echo $line | awk '{ print $16 }'| awk -F "," '{ print $1 }')
+
+        if [ $cpu_usage_idle -lt 20 ]; then
+            echo ' "Cpu": { "cpu_usage_user": "'$cpu_usage_user'", "cpu_usage_system": "'$cpu_usage_system'", "cpu_usage_nice": "'$cpu_usage_nice'", "cpu_usage_idle": "'$cpu_usage_idle'", "cpu_usage_wait": "'$cpu_usage_wait'", "cpu_usage_tshi": "'$cpu_usage_tshi'", "cpu_usage_tssi": "'$cpu_usage_tssi'", "cpu_usage_tsth": "'$cpu_usage_tsth'", "message": "ALERT"  },' >>$file_name
+        else
+
+        echo ' "Cpu": { "cpu_usage_user": "'$cpu_usage_user'", "cpu_usage_system": "'$cpu_usage_system'", "cpu_usage_nice": "'$cpu_usage_nice'", "cpu_usage_idle": "'$cpu_usage_idle'", "cpu_usage_wait": "'$cpu_usage_wait'", "cpu_usage_tshi": "'$cpu_usage_tshi'", "cpu_usage_tssi": "'$cpu_usage_tssi'", "cpu_usage_tsth": "'$cpu_usage_tsth'", "message": "INFO"  },' >>$file_name
+      fi
+    done
+    echo "}," >>$file_name
+}
 
 fct_commons() {
     machine_name_fqdn=$(hostname -f | head -n 1)
     release=$(cat /etc/debian_version)
     CPU=$(cat /proc/cpuinfo | grep processor | tail -n 1 | awk -F": " {'print $2'})
+    CPU_model=$(cat /proc/cpuinfo | grep "model name" | tail -n 1 | awk -F": " {'print $2'} )
     let "CPU += 1"
     TotalMemory=$(grep MemTotal /proc/meminfo | awk '{print $2}')
     check_disk
@@ -123,12 +151,14 @@ fct_server() {
 fct_commons
 fct_server
 fct_network
+fct_cpu_usage
 fct_packages
 echo ' "machine_name_fqdn": "'$machine_name_fqdn'", ' >>$file_name
 echo ' "distributor": "'$distributor'", ' >>$file_name
 echo ' "kernel_version": "'$kernel_version'", ' >>$file_name
 echo ' "release": "'$release'", ' >>$file_name
 echo ' "CPU": "'$CPU'", ' >>$file_name
+echo ' "CPU_model": "'$CPU_model'", ' >>$file_name
 echo ' "TotalMemory": "'$TotalMemory'", ' >>$file_name
 ## echo ' "IPAddr": "'$IPAddr'", ' >>$file_name
 echo ' "start": "'$start'", ' >>$file_name
