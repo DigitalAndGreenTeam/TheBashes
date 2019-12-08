@@ -68,6 +68,35 @@ check_disk() {
     done
     echo "}," >>$file_name
 }
+fct_network() {
+
+    echo '"check_reseaux": {' >>$file_name
+
+
+
+    inter=$(cat /proc/net/dev | awk '{ print $1 }'  | grep -v Inter | grep -v face)
+    echo "${inter//:/}" | while read line; do
+        nom_inter=$(echo $line)
+        ip_addr=$(ip -4 addr | grep $line | grep inet | awk '{print $2}')
+        echo ' "'$nom_inter'": { "ip": "'$ip_addr'" },' >>$file_name
+    done
+    echo "}," >>$file_name
+}
+
+fct_packages() {
+
+    echo '"check_packages": {' >>$file_name
+
+
+
+    packages=$(dpkg-query -f '${binary:Package},${Version}\n' -W)
+    echo "${packages}" | while read line; do
+        nom_packages=$(echo $line | awk -F "," '{ print $1 }')
+        version_packages=$(echo $line | awk -F "," '{ print $2 }')
+          echo ' "'$nom_packages'": { "version_package": "'$version_packages'" },' >>$file_name
+    done
+    echo "}," >>$file_name
+}
 
 fct_commons() {
     machine_name_fqdn=$(hostname -f | head -n 1)
@@ -93,6 +122,8 @@ fct_server() {
 
 fct_commons
 fct_server
+fct_network
+fct_packages
 echo ' "machine_name_fqdn": "'$machine_name_fqdn'", ' >>$file_name
 echo ' "distributor": "'$distributor'", ' >>$file_name
 echo ' "kernel_version": "'$kernel_version'", ' >>$file_name
