@@ -158,9 +158,9 @@ fct_swp_usage () {
         let "pclibre = $swp_usage_free*100"
         let "pclibre = $pclibre /$swp_usage_total"
         if [ $pclibre -lt 20 ]; then
-            echo ' "swp_ram": { "swp_usage_total": "'$swp_usage_total'", "swp_usage_use": "'$swp_usage_use'", "swp_usage_free": "'$swp_usage_free'", "pct libre": "'$pclibre'",  "message": "ALERT"  },' >>$file_name
+            echo ' "swp_ram": { "swp_usage_total": "'$swp_usage_total'", "swp_usage_use": "'$swp_usage_use'", "swp_usage_free": "'$swp_usage_free'", "pct_libre": "'$pclibre'",  "message": "ALERT"  },' >>$file_name
         else
-          echo ' "swp_ram": { "swp_usage_total": "'$swp_usage_total'", "swp_usage_use": "'$swp_usage_use'", "swp_usage_free": "'$swp_usage_free'", "pct libre": "'$pclibre'",  "message": "INFO"  },' >>$file_name
+          echo ' "swp_ram": { "swp_usage_total": "'$swp_usage_total'", "swp_usage_use": "'$swp_usage_use'", "swp_usage_free": "'$swp_usage_free'", "pct_libre": "'$pclibre'",  "message": "INFO"  },' >>$file_name
       fi
     done
     echo "}," >>$file_name
